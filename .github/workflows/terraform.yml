@@ -26,6 +26,11 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
+    - name: Try Import Artifact Registry (ignore errors if already imported)
+      run: |
+        terraform import google_artifact_registry_repository.registry \
+          projects/${project_id}/locations/${region}/repositories/${repository_akm} || true
+
     - name: Terraform Plan
       run: terraform plan
 
