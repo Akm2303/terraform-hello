@@ -1,16 +1,18 @@
-name: Build & Push Docker Image to Artifact Registry
+name: Build and Push Docker Image to Artifact Registry
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 env:
+  PROJECT_ID: arboreal-cosmos-440011-r8        # ✅ Ganti sesuai project kamu
   REGION: asia-southeast2
-  PROJECT_ID: arboreal-cosmos-440011-r8
-  REPO_NAME: ci-artifact-registry
-  IMAGE_NAME: akmal-app
+  REPOSITORY_ID: ci-artifact-registry
+  IMAGE_NAME: my-app
+
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,13 +25,12 @@ jobs:
         credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
 
     - name: Configure Docker for Artifact Registry
-      run: |
-        gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+      run: gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
 
     - name: Build Docker image
       run: |
-        docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:latest .
+        docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_ID/$IMAGE_NAME:latest .
 
     - name: Push Docker image to Artifact Registry
       run: |
-        docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:latest
+        docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_ID/$IMAGE_NAME:latest
