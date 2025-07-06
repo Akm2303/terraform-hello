@@ -28,8 +28,8 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t $REGION-docker.pkg.dev/$arboreal-cosmos-440011-r8/$ci-artifact-registry/$akmal-app:latest .
+        docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:latest .
 
     - name: Push Docker image to Artifact Registry
       run: |
-        docker push $REGION-docker.pkg.dev/$arboreal-cosmos-440011-r8/$ci-artifact-registry/$akmal-app:latest
+        docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$IMAGE_NAME:latest
