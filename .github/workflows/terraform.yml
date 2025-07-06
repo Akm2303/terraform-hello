@@ -9,6 +9,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
+
+    env:
+      PROJECT_ID: arboreal-cosmos-440011-r8
+      REGION: asia-southeast2
+      REPOSITORY_AKM: ci-artifact-registry    
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -29,7 +34,7 @@ jobs:
     - name: Try Import Artifact Registry (ignore errors if already imported)
       run: |
         terraform import google_artifact_registry_repository.registry \
-          projects/${project_id}/locations/${region}/repositories/${repository_akm} || true
+          projects/${PROJECT_ID}/locations/${REGION}/repositories/${REPOSITORY_AKM} || true
 
     - name: Terraform Plan
       run: terraform plan
