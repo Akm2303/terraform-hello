@@ -1,4 +1,4 @@
-name: Terraform Artifact Registry
+name: Terraform with Existing Artifact Registry
 
 on:
   push:
@@ -6,35 +6,35 @@ on:
       - main
 
 jobs:
-  deploy:
+  terraform:
     runs-on: ubuntu-latest
 
-
     env:
-      PROJECT_ID: var.project_id
-      REGION: var.region
-      REPOSITORY_AKM: var.repository_id  
+      PROJECT_ID: arboreal-cosmos-440011-r8        # Ganti dengan project ID kamu
+      REGION: asia-southeast2                      # Lokasi registry
+      REPOSITORY_ID: ci-artifact-registry          # ID dari Artifact Registry yang SUDAH ADA
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: 1.6.0
 
-    - name: Set up Google Cloud credentials
+    - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
       with:
-        credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
+        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
     - name: Terraform Init
       run: terraform init
 
-    - name: Try Import Artifact Registry (ignore errors if already imported)
+    - name: Import Existing Artifact Registry
       run: |
-        terraform import google_artifact_registry_repository.registry \
-          projects/${PROJECT_ID}/locations/${REGION}/repositories/${REPOSITORY_AKM} || true
+        echo "Importing registry if not already in state..."
+        terraform state list | grep google_artifact_registry_repository.registry \
+          || terraform import google_artifact_registry_repository.registry \
+              projects/${PROJECT_ID}/locations/${REGION}/repositories/${REPOSITORY_ID}
 
     - name: Terraform Plan
       run: terraform plan
