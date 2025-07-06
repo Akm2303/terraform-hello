@@ -8,9 +8,13 @@ resource "google_artifact_registry_repository" "registry" {
   repository_id = var.repository_akm
   format        = var.format
 
-  description   = "Artifact Registry via Terraform CI/CD"
-
   docker_config {
     immutable_tags = false
   }
+
+  description = "Artifact Registry via Terraform"
+}
+
+output "registry_url" {
+  value = "${google_artifact_registry_repository.registry.location}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.registry.repository_id}"
 }
