@@ -1,13 +1,9 @@
-FROM golang:1.21-alpine
+FROM python:3.10-slim
 
-# Set working directory dalam container
 WORKDIR /app
 
-# Salin file Go ke dalam container
-COPY main.go .
+COPY . .
 
-# Build aplikasi Go menjadi binary
-RUN go build -o hello main.go
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Perintah default saat container dijalankan
-CMD ["./hello"]
+CMD ["python", "app.py"]

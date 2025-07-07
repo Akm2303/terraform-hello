@@ -1,4 +1,4 @@
-name: Build and Push Docker Image to Artifact Registry
+name: Docker Build and Push to Artifact Registry
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
       - main
 
 env:
-  PROJECT_ID: arboreal-cosmos-440011-r8        # ✅ Ganti sesuai project kamu
+  PROJECT_ID: arboreal-cosmos-440011-r8
   REGION: asia-southeast2
-  REPOSITORY_AKM: ci-artifact-registry
+  REPOSITORY_ID: ci-artifact-registry
   IMAGE_NAME: akmal-app
 
 jobs:
@@ -16,21 +16,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout source code
+    - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
       with:
         credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
 
-    - name: Configure Docker for Artifact Registry
-      run: gcloud auth configure-docker $REGION-docker.pkg.dev --quiet
+    - name: Terraform Init
+      run: terraform init
 
-    - name: Build Docker image
+    - name: Import Artifact Registry (if exists)
       run: |
-        docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_AKM/$IMAGE_NAME:latest .
+        terraform import google_artifact_registry_repository.registry \
+          projects/${PROJECT_ID}/locations/${REGION}/repositories/${REPOSITORY_ID} || true
 
-    - name: Push Docker image to Artifact Registry
+    - name: Terraform Plan & Apply
       run: |
-        docker push $REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY_AKM/$IMAGE_NAME:latest
+        terraform plan
+        terraform apply -auto-approve
+
+    - name: Configure Docker to use Artifact Registry
+      run: |
+        gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
+
+    - name: Build Docker Image
+      run: |
+        docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY_ID}/${IMAGE_NAME}:latest .
+
+    - name: Push Docker Image to Artifact Registry
+      run: |
+        docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY_ID}/${IMAGE_NAME}:latest
