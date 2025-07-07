@@ -9,7 +9,7 @@ env:
   PROJECT_ID: arboreal-cosmos-440011-r8        # ✅ Ganti sesuai project kamu
   REGION: asia-southeast2
   REPOSITORY_AKM: ci-artifact-registry
-  IMAGE_NAME: my-app
+  IMAGE_NAME: akmal-app
 
 jobs:
   build:
