@@ -1,21 +1,22 @@
-name: Terraform with Existing Artifact Registry
+name: Docker Build and Push to Artifact Registry
 
 on:
   push:
     branches:
       - main
 
+env:
+  PROJECT_ID: arboreal-cosmos-440011-r8
+  REGION: asia-southeast2
+  REPOSITORY_ID: ci-artifact-registry
+  IMAGE_NAME: akmal-app
+
 jobs:
-  terraform:
+  build:
     runs-on: ubuntu-latest
 
-    env:
-      PROJECT_ID: arboreal-cosmos-440011-r8        # Ganti dengan project ID kamu
-      REGION: asia-southeast2                      # Lokasi registry
-      REPOSITORY_ID: ci-artifact-registry          # ID dari Artifact Registry yang SUDAH ADA
-
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Setup Terraform
@@ -29,15 +30,24 @@ jobs:
     - name: Terraform Init
       run: terraform init
 
-    - name: Import Existing Artifact Registry
+    - name: Import Artifact Registry (if exists)
       run: |
-        echo "Importing registry if not already in state..."
-        terraform state list | grep google_artifact_registry_repository.registry \
-          || terraform import google_artifact_registry_repository.registry \
-              projects/${PROJECT_ID}/locations/${REGION}/repositories/${REPOSITORY_ID}
+        terraform import google_artifact_registry_repository.registry \
+          projects/${PROJECT_ID}/locations/${REGION}/repositories/${REPOSITORY_ID} || true
 
-    - name: Terraform Plan
-      run: terraform plan
+    - name: Terraform Plan & Apply
+      run: |
+        terraform plan
+        terraform apply -auto-approve
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
+    - name: Configure Docker to use Artifact Registry
+      run: |
+        gcloud auth configure-docker ${REGION}-docker.pkg.dev --quiet
+
+    - name: Build Docker Image
+      run: |
+        docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY_ID}/${IMAGE_NAME}:latest .
+
+    - name: Push Docker Image to Artifact Registry
+      run: |
+        docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY_ID}/${IMAGE_NAME}:latest
